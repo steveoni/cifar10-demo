@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<title>cifar10 image detect</title>
+	<link rel="stylesheet" href="./css/style.css">
+	<style>
+	body{
+		background: #ddd;
+		padding:10px;
+	}
+	#canvas{
+		border:2px dashed #aaa;
+		display: block;
+		margin: 0 49% auto;
+		background-color: white; 
+	}
+	li{
+		display: inline;
+	}
+	#canvas.over{
+		background: #ccc;
+	}
+	#options{
+		margin-top: 10px;
+		margin-left: 30%;
+		float: left;
+		text-align: center;
+	}
+	#options input{
+		width:40px;
+
+	}
+	#visn{
+		font-family: roboto;
+		font-size: 34px;
+
+	}
+	</style>
+	
+</head>
+
+<body>
+
+<!--UI -->
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12 col-md-12">
+			<p>It predict image image base on the well trained model of cifar10,gotten from a saved json snapshot of covnetjs.it can predict only standing human image and animal.type yes in the box to see the layers of the model and no to just see the prediction, and then click predict to predict. the json used is baved on 80% accuracy. so image can still be mix classify. you can train your own model to get 90% accuracy and saved the json file to the d.js in the js folder.</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 col-xs-6 col-sm-6">
+			<canvas id="canvas"></canvas>
+		</div>
+		<div class="col-md-6 col-xs-6 col-sm-6">
+			<div id="visn"></div>
+		</div>
+	</div>
+
+	<div id="options">
+		<input type="text" id="iterations" value="no" />
+		 <button id='seeAct' class="btn btn-primary btn-lg">Predict</button>
+	</div>
+</div>
+
+<div id="visnet"></div>
+
+<!--import all file and libary to be used-->
+
+<canvas id="canvas2"></canvas>
+<canvas id="canvas3"></canvas>
+<script src='./js/d.js' ></script>
+<script src='./js/jquery-1.8.3.min.js'></script>
+<script src='./js/util.js'></script>
+<script src='./js/convnet.js'></script>
+<script src='./js/vis.js'></script>
+<script src='./js/test.js'></script>
+
+<script src="./js/pica.js"></script>
+
+<!--end import -->
+
+<!--js for the main action -->
+<script>
+	(function(){
+		
+
+		var canvas = document.getElementById('canvas');
+		var button = document.getElementById('seeAct');
+		var ctx = canvas.getContext('2d');
+		var Height  = 408,
+			WIDTH = 306,
+			keepImg;
+
+		canvas.height = Height;
+		canvas.width = WIDTH;
+
+		canvas.addEventListener('dragover',preventDefault);
+		canvas.addEventListener('dragleave',preventDefault);
+		canvas.addEventListener('drop',handleDrop);
+		button.addEventListener('click',handler);
+
+		var image_dimension = 32; //dimesion you want to reduce the image to
+
+		function preventDefault(e){
+			if(e.preventDefault){
+				e.preventDefault();
+			}
+
+			return false
+		}
+
+		function handleDrop(e){
+			e.stopPropagation();
+			e.preventDefault();
+			e.dataTransfer.dropEffect = "copy";
+			var file = e.dataTransfer.files[0];
+			var image = new Image();
+			var reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload=(function(){
+				return function(e){
+					image.src = e.target.result;
+
+					
+				}
+			})();
+
+			image.onload = function(){
+
+				ctx.drawImage(image,0,0,WIDTH,Height);
+				keepImg = resize(image);// hold the image imediately as the image is loaded
+				
+
+			}
+
+		};
+
+		function resize(image){
+			var can = document.createElement('canvas');;
+		    can.width = image.width;
+		    can.height = image.height;
+		    var ct = can.getContext("2d");
+		    ct.drawImage(image, 0, 0, image.width, image.height);
+		    
+		    var dst = document.createElement('canvas');
+		    dst.width = image_dimension;
+		    dst.height = image_dimension;
+		    window.pica.WW = false;
+		    window.pica.resizeCanvas(canvas, dst, {
+		    quality: 2,
+		    unsharpAmount: 500,
+		    unsharpThreshold: 100,
+		    transferable: false
+		  }, function (err) {  });
+		    window.pica.WW = true;
+		    var ctx = dst.getContext('2d');
+		    return ctx.getImageData(0,0,dst.width,dst.height);
+		}
+		function handler(){
+			
+			var iterations = document.getElementById('iterations').value || 'no';
+
+			testImage(keepImg,iterations);
+			
+		}
+		
+	})();
+
+</script>
+<div id="div1"></div>
+<script src='./js/jquery-1.8.3.min.js'></script>
+<script src="./js/bootstrap.js"></script>
+</body>
+</html>
